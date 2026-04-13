@@ -1,111 +1,57 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
----
-
-## 2. Intended Use  
-
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+VibeFinder 1.0
 
 ---
 
-## 3. How the Model Works  
+## 2. Goal / Task
 
-Explain your scoring approach in simple language.  
-
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+VibeFinder suggests songs from a 20-song catalog that match a listener's preferred genre, mood, energy level, and acoustic preference. Given a user profile with those four values, it returns the top 5 best-matching songs along with a plain-language explanation for each one. It is designed for classroom exploration of content-based filtering, not for real-world music platforms.
 
 ---
 
-## 4. Data  
+## 3. Data Used
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+The catalog contains 20 songs across 12 genres (pop, rock, lofi, jazz, edm, hip-hop, folk, country, r&b, ambient, synthwave, indie pop) and 6 moods (happy, chill, intense, moody, relaxed, focused). Each song has 8 attributes: title, artist, genre, mood, energy (0.0–1.0), tempo in BPM, valence (0.0–1.0), danceability (0.0–1.0), and acousticness (0.0–1.0). The dataset is small and reflects a broadly Western pop music frame. Several genres like country and folk have only one or two songs, which limits recommendation quality for users who prefer those genres.
 
 ---
 
-## 5. Strengths  
+## 4. Algorithm Summary
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+For each song in the catalog, the system computes a score by checking four things. First, if the song's genre matches the user's preferred genre, it earns 3 points — the highest weight because genre is the strongest predictor of taste. Second, if the mood matches, it earns 2 more points. Third, the system measures how close the song's energy level is to the user's target: a perfect match earns 1.5 points and anything slightly off earns proportionally less. Fourth, if the song's acoustic character (organic vs. electronic) fits the user's preference, it earns 1 more point. All four contributions are added together and songs are sorted from highest to lowest score. The top results are returned with a written explanation of exactly which factors contributed points.
 
 ---
 
-## 6. Limitations and Bias 
+## 5. Observed Behavior / Biases
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+The genre weight (3.0) is strong enough to dominate the score in most cases. Two songs that match the preferred genre will usually outscore a perfect mood-and-energy match in a different genre. This creates a filter bubble: users rarely see songs outside their stated genre even when those would be a better emotional fit. A second bias is catalog sparsity — genres with only one song (country, folk) produce one strong recommendation followed by weak fallbacks in unrelated genres. A third issue is that the system cannot detect conflicting preferences: a user who asks for high-energy ambient music gets the two lowest-energy songs in the catalog because they happen to be the only ambient ones, with no warning that the request was contradictory.
 
 ---
 
-## 7. Evaluation  
+## 6. Evaluation Process
 
-How you checked whether the recommender behaved as expected. 
-
-Prompts:  
-
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
-
-No need for numeric metrics unless you created some.
+Six user profiles were tested: three standard (pop/happy, lofi/chill, edm/intense) and three adversarial (ambient+high energy, folk+intense, country/relaxed). Standard profiles produced sensible results with scores in the 7.4–7.5 range for the top match. The adversarial profiles revealed the filter bubble and conflict-blindness issues described above. The most surprising result was the Riley profile: requesting high-energy ambient music returned the two quietest songs in the catalog, the exact opposite of the energy target, because genre weight alone was enough to push them to the top. A weight-shift experiment (lowering genre weight, raising energy weight) confirmed this — Riley's results shifted toward higher-energy songs when genre stopped dominating.
 
 ---
 
-## 8. Future Work  
+## 7. Intended Use and Non-Intended Use
 
-Ideas for how you would improve the model next.  
+**Intended use:** Classroom demonstration of how content-based filtering works. Suitable for exploring how scoring weights affect recommendations and where simple algorithms break down.
 
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+**Not intended for:** Real music platforms, production use, or any context where recommendations affect actual users. The catalog is too small, the preference model is too simple, and there is no feedback loop or personalization over time.
 
 ---
 
-## 9. Personal Reflection  
+## 8. Ideas for Improvement
 
-A few sentences about your experience.  
+1. **Conflict detection:** Before scoring, check whether the user's genre and energy preferences are compatible given the catalog. If no songs in the preferred genre match the energy target within a reasonable range, warn the user rather than silently returning bad results.
+2. **User-adjustable weights:** Let users set their own importance values per session (e.g., "mood matters more than genre today") so the system adapts to context rather than using fixed weights.
+3. **Larger, more balanced catalog:** Add at least 3–5 songs per genre so niche-genre users get meaningful ranked results beyond rank 1.
 
-Prompts:  
+---
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+## 9. Personal Reflection
+
+Building this made me realize how much a single design choice — like setting the genre weight to 3.0 — can quietly control everything the system does, even when other features like energy or mood seem equally important. The most surprising result was the Riley edge case, where a user asking for high-energy ambient music got the exact opposite because the genre weight forced ambient songs to the top regardless of their energy. I also didn't expect how quickly a 20-song catalog would run out of meaningful options for niche genres like country or folk — it made the limitations of small datasets feel very concrete. Thinking about this in the context of real apps like Spotify, I now notice how much those platforms must rely on massive catalogs and user feedback loops to avoid the filter bubbles our simple scoring logic creates so easily.

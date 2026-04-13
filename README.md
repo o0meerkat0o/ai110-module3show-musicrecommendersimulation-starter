@@ -100,7 +100,25 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-*(Fill in after running the system with multiple profiles.)*
+### Alex — Pop / Happy / High Energy
+![Alex profile output](screenshots/alex_profile.png)
+
+### Sam — Lofi / Chill / Acoustic
+![Sam profile output](screenshots/sam_profile.png)
+
+### Jordan — EDM / Intense / High Energy
+![Jordan profile output](screenshots/jordan_profile.png)
+
+### Riley — Conflicting Preferences (ambient + high energy)
+![Riley profile output](screenshots/riley_profile.png)
+
+### Morgan — Conflicting Preferences (acoustic folk + intense mood)
+![Morgan profile output](screenshots/morgan_profile.png)
+
+### Casey — Niche Genre / Low Catalog Coverage (country)
+![Casey profile output](screenshots/casey_profile.png)
+
+When the genre weight was dominant (3.0), profiles with niche genres like country and folk received strong first results but weak fallbacks — Casey's #2 and beyond were unrelated jazz songs simply because no other country songs existed. Lowering the genre weight and raising the energy weight shifted Riley's results toward higher-energy songs, confirming that the genre weight was overriding the energy target entirely. The EDM and lofi profiles consistently produced the most intuitive results because those genres had multiple songs in the catalog covering a range of moods.
 
 ---
 
@@ -115,6 +133,6 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Reflection
 
-*(Complete after finishing model_card.md.)*
-
 [**Model Card**](model_card.md)
+
+Building this project showed me how much a single design decision — like how much weight to give genre — shapes everything the system does, even when you think other features like energy or mood are equally important. The biggest surprise was testing the Riley edge case: a user who wanted high-energy ambient music got the two quietest songs in the catalog, because the genre weight alone was strong enough to override the energy target completely. I also didn't expect the catalog size to matter so much — once you have only one country song, the whole ranking below rank 1 collapses into unrelated fallbacks, which made the limits of small datasets feel very real. Using AI tools throughout helped me move faster on the boilerplate and structure, but I had to actively check that the scoring logic and explanations matched each other rather than just trusting that the output looked right.
